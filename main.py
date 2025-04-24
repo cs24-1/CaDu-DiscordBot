@@ -13,6 +13,9 @@ prefix = os.getenv("BOT_PREFIX")
 owner_id = int(os.getenv("OWNER_ID"))
 channel_id = int(os.getenv("CHANNEL_ID"))
 
+campus_hash = os.getenv("CAMPUS_HASH")
+campus_user = os.getenv("CAMPUS_USER")
+
 # Intents (nur das Nötigste, kannst du bei Bedarf erweitern)
 intents = discord.Intents.default()
 
@@ -33,7 +36,7 @@ async def stundenplan_task():
 
 # Funktion zum Abrufen des Stundenplans
 def hole_stundenplan():
-    url = "https://selfservice.campus-dual.de/room/json?userid=5002722&hash=1bf795c754b7bb8015ba8b3ed6422214"
+    url = f"https://selfservice.campus-dual.de/room/json?userid={campus_user}&hash={campus_hash}"
     response = requests.get(url)
     if response.status_code != 200:
         return "❌ Fehler beim Abrufen des Stundenplans."
