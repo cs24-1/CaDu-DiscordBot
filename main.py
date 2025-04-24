@@ -4,20 +4,21 @@ import json
 import os
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
 
-# Konfigurationsdatei laden
-with open("configuration.json", "r") as config:
-    data = json.load(config)
-    token = data["token"]
-    prefix = data["prefix"]
-    owner_id = data["owner_id"]
-    channel_id = int(data["channel_id"])
+load_dotenv()
+
+token = os.getenv("DISCORD_TOKEN")
+prefix = os.getenv("BOT_PREFIX")
+owner_id = int(os.getenv("OWNER_ID"))
+channel_id = int(os.getenv("CHANNEL_ID"))
 
 # Intents (nur das Nötigste, kannst du bei Bedarf erweitern)
 intents = discord.Intents.default()
 
 # Bot-Instanz
 bot = commands.Bot(command_prefix=prefix, intents=intents, owner_id=owner_id)
+
 
 # Hintergrundaufgabe: Stundenplan alle 24h posten
 @tasks.loop(hours=24)
@@ -28,6 +29,7 @@ async def stundenplan_task():
         return
     stundenplan = hole_stundenplan()
     await channel.send(stundenplan)
+
 
 # Funktion zum Abrufen des Stundenplans
 def hole_stundenplan():
@@ -64,25 +66,30 @@ def hole_stundenplan():
 
     return output.strip()
 
+
 # Wenn der Bot bereit ist
 @bot.event
 async def on_ready():
     print(f"✅ Eingeloggt als {bot.user}")
     print(f"📦 Discord.py Version: {discord.__version__}")
-    await bot.change_presence(activity=discord.Activity(
-        type=discord.ActivityType.watching,
-        name=f"{bot.command_prefix}help"
-    ))
+    await bot.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching, name=f"{bot.command_prefix}help"
+        )
+    )
     stundenplan_task.start()
+
 
 @bot.command()
 async def stundenplan(ctx):
     plan = hole_stundenplan()
     await ctx.send(plan)
 
+
 @bot.command()
 async def ping(ctx):
     await ctx.send("🏓 Pong!")
+
 
 # Bot starten
 bot.run(token)
