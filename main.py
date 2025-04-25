@@ -6,18 +6,19 @@ import requests
 from datetime import datetime
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path=r"H:\Visual Studio Code\CaDu-DiscordBot\.env")
 
 token = os.getenv("DISCORD_TOKEN")
 prefix = os.getenv("BOT_PREFIX")
-owner_id = int(os.getenv("OWNER_ID"))
+owner_id_raw = os.getenv("OWNER_ID")
+owner_id = int(owner_id_raw)
 channel_id = int(os.getenv("CHANNEL_ID"))
-
 campus_hash = os.getenv("CAMPUS_HASH")
 campus_user = os.getenv("CAMPUS_USER")
 
 # Intents (nur das Nötigste, kannst du bei Bedarf erweitern)
 intents = discord.Intents.default()
+intents.message_content = True 
 
 # Bot-Instanz
 bot = commands.Bot(command_prefix=prefix, intents=intents, owner_id=owner_id)
