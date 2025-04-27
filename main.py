@@ -184,8 +184,9 @@ async def stundenplan(ctx, argument: str = "7"):
         else:
             plan = "❌ Ungültiges Argument. Bitte benutze 'heute', 'morgen' oder eine Zahl für die nächsten Tage."
 
-        await ctx.send(plan)
-
+        # Aufteilen des Textes in kleinere Nachrichten
+        await send_long_message(ctx, plan)
+        
     except requests.exceptions.SSLError:
         await ctx.send("❌ SSL-Fehler: Zertifikat konnte nicht validiert werden. Bitte Setup prüfen.")
     except Exception as e:
