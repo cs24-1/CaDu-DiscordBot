@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 import json
 import os
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
@@ -19,6 +19,8 @@ channel_id = os.getenv("CHANNEL_ID")
 campus_hash = os.getenv("CAMPUS_HASH")
 campus_user = os.getenv("CAMPUS_USER")
 
+
+
 # Intents (nur das Nötigste, kannst du bei Bedarf erweitern)
 intents = discord.Intents.default()
 intents.message_content = True
@@ -26,14 +28,40 @@ intents.message_content = True
 # Bot-Instanz
 bot = commands.Bot(command_prefix=prefix, intents=intents, owner_id=owner_id)
 
+# Liste mit Feiertagen
+
+FEIERTAGE = {
+    date(2025, 1, 1),    # Neujahr
+    date(2025, 4, 18),   # Karfreitag
+    date(2025, 4, 21),   # Ostermontag
+    date(2025, 5, 1),    # Tag der Arbeit
+    date(2025, 5, 29),   # Christi Himmelfahrt
+    date(2025, 6, 9),    # Pfingstmontag
+    date(2025, 10, 3),   # Tag der Deutschen Einheit
+    date(2025, 12, 25),  # 1. Weihnachtstag
+    date(2025, 12, 26),  # 2. Weihnachtstag
+}
+
 # Hintergrundaufgabe: Stundenplan alle 24h posten
 @tasks.loop(hours=24)
 async def stundenplan_task():
-    channel = bot.get_channel(channel_id)
+    channel = bot.get_channel(int(channel_id))
     if channel is None:
         print("❌ Kanal nicht gefunden.")
         return
-    stundenplan = hole_stundenplan()
+    
+    today = datetime.today()
+
+    if today.weekday() >= 5:  # Teste ob Wochentag
+        print("⏭ Wochenende ~ Stundenplan wird nicht gesendet.")
+        return
+
+    if today.date() in FEIERTAGE: # Teste ob Feiertag
+        print("⏭ Feiertag ~ Stundenplan wird nicht gesendet.")
+        return
+
+    stundenplan = hole_stundenplan(0)
+
     # Aufteilen des Textes in kleinere Nachrichten
     await send_long_message(channel, stundenplan)
 
