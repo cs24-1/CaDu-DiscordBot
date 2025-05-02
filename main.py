@@ -1,3 +1,4 @@
+import json
 import discord
 from discord.ext import commands, tasks
 import json
@@ -28,7 +29,24 @@ intents.message_content = True
 # Bot-Instanz
 bot = commands.Bot(command_prefix=prefix, intents=intents, owner_id=owner_id)
 
-ping_counter = {}  # Zähler für Ping-Befehle
+
+# Ping-Zähler initialisieren
+ping_counter = {}  
+
+# Lade bestehende Daten (falls vorhanden)
+def load_ping_counter():
+    global ping_counter
+    try:
+        with open("ping_counter.json", "r") as f:
+            ping_counter = json.load(f)
+            ping_counter = {int(k): v for k, v in ping_counter.items()}  # Keys in int konvertieren
+    except FileNotFoundError:
+        ping_counter = {}
+
+# Speichere aktuelle Zählerstände
+def save_ping_counter():
+    with open("ping_counter.json", "w") as f:
+        json.dump(ping_counter, f)
 
 # Liste mit Feiertagen
 
@@ -170,6 +188,7 @@ async def send_long_message(channel, content):
 # Wenn der Bot bereit ist
 @bot.event
 async def on_ready():
+    load_ping_counter()
     print(f"✅ Eingeloggt als {bot.user}")
     print(f"📦 Discord.py Version: {discord.__version__}")
     await bot.change_presence(
@@ -223,45 +242,61 @@ async def stundenplan(ctx, argument: str = "7"):
 
 # Einfacher Ping-Befehl
 @bot.command()
-async def ping(ctx):
-
+async def ping(ctx, argument: str = None):
     user_id = ctx.author.id
     user_name = ctx.author.display_name
 
-    # Erhöhe den Zähler für diesen Benutzer
-    ping_counter[user_id] = ping_counter.get(user_id, 0) + 1
-    count = ping_counter[user_id]
+    if argument == "count":
+        count = ping_counter.get(user_id, 0)
+        await ctx.send(f"🏓 Du hast den Ping-Befehl {count} Mal benutzt.")
 
-    if count == 5:
-        await ctx.send(f"🏓 Pong! {user_name}, du hast diesen Befehl bereits {count} Mal benutzt. Hast du nichts besseres zu tun")
-    elif count == 10:
-        await ctx.send(f"""🏓 Pong! {user_name}, du hast diesen Befehl bereits {count} Mal benutzt. 
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠛⠛⠛⠿⣿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠉⠻⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⠋⠈⠀⠀⠀⠀⠐⠺⣖⢄⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⡏⢀⡆⠀⠀⠀⢋⣭⣽⡚⢮⣲⠆⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⡇⡼⠀⠀⠀⠀⠈⠻⣅⣨⠇⠈⠀⠰⣀⣀⣀⡀⠀⢸⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⡇⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣟⢷⣶⠶⣃⢀⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⠀⠈⠓⠚⢸⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⢀⡠⠀⡄⣀⠀⠀⠀⢻⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠐⠉⠀⠀⠙⠉⠀⠠⡶⣸⠁⠀⣠⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣦⡆⠀⠐⠒⠢⢤⣀⡰⠁⠇⠈⠘⢶⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠠⣄⣉⣙⡉⠓⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣤⣀⣀⠀⣀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿""")
+    elif argument == "scoreboard":
+        if not ping_counter:
+            await ctx.send("📉 Noch keine Ping-Daten vorhanden.")
+            return
+
+        # Top 10 sortieren
+        sorted_users = sorted(ping_counter.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        output = "**🏓 Ping-Scoreboard**\n\n"
+        for i, (uid, count) in enumerate(sorted_users, 1):
+            try:
+                user = await bot.fetch_user(uid)
+                output += f"**{i}.** {user.name}#{user.discriminator}: `{count}` Pings\n"
+            except:
+                output += f"**{i}.** Unbekannter Nutzer ({uid}): `{count}` Pings\n"
+
+        await ctx.send(output)
+
     else:
-        await ctx.send("🏓 Pong!")
+        # Zähler erhöhen
+        ping_counter[user_id] = ping_counter.get(user_id, 0) + 1
+        save_ping_counter()
+        count = ping_counter[user_id]
 
-@bot.command()
-async def ping_count(ctx):
-    """
-    Zeigt die Anzahl der Ping-Befehle für den Benutzer an.
-    """
-    user_id = ctx.author.id
-    count = ping_counter.get(user_id, 0)
-    await ctx.send(f"🏓 Du hast den Ping-Befehl {count} Mal benutzt.")
+        if count == 5:
+            await ctx.send(f"🏓 Pong! {user_name}, du hast diesen Befehl bereits {count} Mal benutzt. Hast du nichts besseres zu tun?")
+        elif count == 10:
+            await ctx.send(f"""🏓 Pong! {user_name}, du hast diesen Befehl bereits {count} Mal benutzt.
+ 
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠛⠛⠛⠿⣿⣿⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠉⠻⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⠋⠈⠀⠀⠀⠀⠐⠺⣖⢄⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⡏⢀⡆⠀⠀⠀⢋⣭⣽⡚⢮⣲⠆⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⡇⡼⠀⠀⠀⠀⠈⠻⣅⣨⠇⠈⠀⠰⣀⣀⣀⡀⠀⢸⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⡇⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣟⢷⣶⠶⣃⢀⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⠀⠈⠓⠚⢸⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⢀⡠⠀⡄⣀⠀⠀⠀⢻⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠐⠉⠀⠀⠙⠉⠀⠠⡶⣸⠁⠀⣠⣿⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣦⡆⠀⠐⠒⠢⢤⣀⡰⠁⠇⠈⠘⢶⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠠⣄⣉⣙⡉⠓⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                                ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣤⣀⣀⠀⣀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿""")
+        else:
+            await ctx.send("🏓 Pong!")
+                
 
 # Bot starten
 bot.run(token)
