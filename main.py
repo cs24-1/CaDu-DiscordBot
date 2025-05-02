@@ -28,6 +28,8 @@ intents.message_content = True
 # Bot-Instanz
 bot = commands.Bot(command_prefix=prefix, intents=intents, owner_id=owner_id)
 
+ping_counter = {}  # Zähler für Ping-Befehle
+
 # Liste mit Feiertagen
 
 FEIERTAGE = {
@@ -222,7 +224,44 @@ async def stundenplan(ctx, argument: str = "7"):
 # Einfacher Ping-Befehl
 @bot.command()
 async def ping(ctx):
-    await ctx.send("🏓 Pong!")
+
+    user_id = ctx.author.id
+    user_name = ctx.author.display_name
+
+    # Erhöhe den Zähler für diesen Benutzer
+    ping_counter[user_id] = ping_counter.get(user_id, 0) + 1
+    count = ping_counter[user_id]
+
+    if count == 5:
+        await ctx.send(f"🏓 Pong! {user_name}, du hast diesen Befehl bereits {count} Mal benutzt. Hast du nichts besseres zu tun")
+    elif count == 10:
+        await ctx.send(f"""🏓 Pong! {user_name}, du hast diesen Befehl bereits {count} Mal benutzt. 
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠛⠛⠛⠿⣿⣿⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠉⠻⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⠋⠈⠀⠀⠀⠀⠐⠺⣖⢄⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⡏⢀⡆⠀⠀⠀⢋⣭⣽⡚⢮⣲⠆⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⡇⡼⠀⠀⠀⠀⠈⠻⣅⣨⠇⠈⠀⠰⣀⣀⣀⡀⠀⢸⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⡇⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣟⢷⣶⠶⣃⢀⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⠀⠈⠓⠚⢸⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⢀⡠⠀⡄⣀⠀⠀⠀⢻⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠐⠉⠀⠀⠙⠉⠀⠠⡶⣸⠁⠀⣠⣿⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣦⡆⠀⠐⠒⠢⢤⣀⡰⠁⠇⠈⠘⢶⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠠⣄⣉⣙⡉⠓⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                        ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣤⣀⣀⠀⣀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿""")
+    else:
+        await ctx.send("🏓 Pong!")
+
+@bot.command()
+async def ping_count(ctx):
+    """
+    Zeigt die Anzahl der Ping-Befehle für den Benutzer an.
+    """
+    user_id = ctx.author.id
+    count = ping_counter.get(user_id, 0)
+    await ctx.send(f"🏓 Du hast den Ping-Befehl {count} Mal benutzt.")
 
 # Bot starten
 bot.run(token)
