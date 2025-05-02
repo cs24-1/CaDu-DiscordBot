@@ -302,4 +302,4 @@ async def ping(ctx, argument: str = None):
                 
 
 # Bot starten
-bot.run(token)wb
+bot.run(token)
