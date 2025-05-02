@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
 from requests.exceptions import RequestException
+from datetime import timezone
+import pytz
 
 # Lade Umgebungsvariablen
 load_dotenv()
@@ -152,8 +154,9 @@ def hole_stundenplan(tage):
     for datum, eintraege in tage_gruppiert.items():
         output += f"📌 **{datum}**:\n"
         for i, eintrag in enumerate(eintraege):
-            start_dt = datetime.fromtimestamp(eintrag["start"])
-            end_dt = datetime.fromtimestamp(eintrag["end"])
+            berlin = pytz.timezone("Europe/Berlin")
+            start_dt = datetime.fromtimestamp(eintrag["start"], tz=timezone.utc).astimezone(berlin)
+            end_dt = datetime.fromtimestamp(eintrag["end"], tz=timezone.utc).astimezone(berlin)
             start = start_dt.strftime("%H:%M")  # Uhrzeit im Format 24h
             end = end_dt.strftime("%H:%M")  # Uhrzeit im Format 24h
             title = eintrag["title"]
@@ -299,4 +302,4 @@ async def ping(ctx, argument: str = None):
                 
 
 # Bot starten
-bot.run(token)
+bot.run(token)wb
