@@ -11,6 +11,7 @@ from urllib3.exceptions import InsecureRequestWarning
 from requests.exceptions import RequestException
 from datetime import timezone
 import pytz
+import asyncio
 
 # Lade Umgebungsvariablen
 load_dotenv()
@@ -64,28 +65,41 @@ FEIERTAGE = {
     date(2025, 12, 26),  # 2. Weihnachtstag
 }
 
-# Hintergrundaufgabe: Stundenplan alle 24h posten
-@tasks.loop(hours=24)
+# Statt @tasks.loop(hours=24)
 async def stundenplan_task():
-    channel = bot.get_channel(int(channel_id))
-    if channel is None:
-        print("❌ Kanal nicht gefunden.")
-        return
+    await bot.wait_until_ready()
+    berlin = pytz.timezone("Europe/Berlin")
     
-    today = datetime.today()
+    while not bot.is_closed():
+        now = datetime.now(tz=berlin)
+        target_time = now.replace(hour=6, minute=0, second=0, microsecond=0)
 
-    if today.weekday() >= 5:  # Teste ob Wochentag
-        print("⏭ Wochenende ~ Stundenplan wird nicht gesendet.")
-        return
+        # Wenn 6 Uhr heute schon vorbei ist, nimm 6 Uhr morgen
+        if now >= target_time:
+            target_time += timedelta(days=1)
 
-    if today.date() in FEIERTAGE: # Teste ob Feiertag
-        print("⏭ Feiertag ~ Stundenplan wird nicht gesendet.")
-        return
+        wait_seconds = (target_time - now).total_seconds()
+        print(f"⏳ Warte bis {target_time.strftime('%Y-%m-%d %H:%M:%S')} ({int(wait_seconds)} Sekunden)")
+        await asyncio.sleep(wait_seconds)
 
-    stundenplan = hole_stundenplan(0)
+        # Jetzt ist es 6 Uhr in Berlin
+        channel = bot.get_channel(int(channel_id))
+        if channel is None:
+            print("❌ Kanal nicht gefunden.")
+            continue
 
-    # Aufteilen des Textes in kleinere Nachrichten
-    await send_long_message(channel, stundenplan)
+        today = datetime.now(tz=berlin).date()
+
+        if today.weekday() >= 5:
+            print("⏭ Wochenende ~ Stundenplan wird nicht gesendet.")
+            continue
+
+        if today in FEIERTAGE:
+            print("⏭ Feiertag ~ Stundenplan wird nicht gesendet.")
+            continue
+
+        stundenplan = hole_stundenplan(0)
+        await send_long_message(channel, stundenplan)
 
 # Funktion zum Abrufen des Stundenplans
 def hole_stundenplan(tage):
@@ -196,7 +210,7 @@ async def on_ready():
             type=discord.ActivityType.watching, name=f"{bot.command_prefix}help"
         )
     )
-    stundenplan_task.start()
+    bot.loop.create_task(stundenplan_task())
 
 # Kommando für den Stundenplan
 @bot.command()
