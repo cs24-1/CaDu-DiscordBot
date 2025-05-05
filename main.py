@@ -117,17 +117,14 @@ def hole_stundenplan(tage):
     if not eintraege:
         return "ℹ️ Kein Stundenplan gefunden."
 
-    # hole aktuelles Datum,
-   
-    start_date = datetime.now()
+    # Startzeitpunkt auf 00:00 Uhr setzen
+    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    zeitraum_ende = start_date + timedelta(days=tage + 1)  # exklusiv bis 00:00 am nächsten Tag
 
-    # ZEITRAUM-FILTER HIER
-    zeitraum_ende = start_date + timedelta(days=tage)
-
-    gefilterte_eintraege = []  # Liste für gefilterte Einträge
+    gefilterte_eintraege = []
     for eintrag in eintraege:
         start_dt = datetime.fromtimestamp(eintrag["start"])
-        if start_date <= start_dt <= zeitraum_ende:
+        if start_date <= start_dt < zeitraum_ende:
             gefilterte_eintraege.append(eintrag)
 
     if not gefilterte_eintraege:
