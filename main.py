@@ -131,15 +131,28 @@ def hole_stundenplan(tage):
     if not eintraege:
         return "ℹ️ Kein Stundenplan gefunden."
 
-    # Startzeitpunkt auf 00:00 Uhr setzen
-    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    zeitraum_ende = start_date + timedelta(days=tage + 1)  # exklusiv bis 00:00 am nächsten Tag
+    # Zeitzone Berlin
+    berlin = pytz.timezone("Europe/Berlin")
+    now = datetime.now(tz=berlin)
+    heute0 = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
+    # 1) Zeitfenster festlegen
+    if tage == 0:
+        start_date   = heute0
+        zeitraum_end = heute0 + timedelta(days=1)
+    elif tage == 1:
+        start_date   = heute0 + timedelta(days=1)
+        zeitraum_end = start_date + timedelta(days=1)
+    else:
+        start_date   = heute0
+        zeitraum_end = heute0 + timedelta(days=tage)
+
+    # 2) Filtern (Timestamp → UTC → Berlin)
     gefilterte_eintraege = []
-    for eintrag in eintraege:
-        start_dt = datetime.fromtimestamp(eintrag["start"])
-        if start_date <= start_dt < zeitraum_ende:
-            gefilterte_eintraege.append(eintrag)
+    for e in eintraege:
+        start_dt = datetime.fromtimestamp(e["start"], tz=timezone.utc).astimezone(berlin)
+        if start_date <= start_dt < zeitraum_end:
+            gefilterte_eintraege.append(e)
 
     if not gefilterte_eintraege:
         if tage == 0:
@@ -401,31 +414,7 @@ async def pong(ctx):
 async def bong(ctx):
     user_name = ctx.author.display_name
 
-    await ctx.send(f"""🏓 Pong!, {user_name} stop taking drugs
-                         .                          
-                     M                          
-                    dM                          
-                    MMr                         
-                   4MMML                  .     
-                   MMMMM.                xf     
-   .              "MMMMM               .MM-     
-    Mh..          +MMMMMM            .MMMM      
-    .MMM.         .MMMMML.          MMMMMh      
-     )MMMh.        MMMMMM         MMMMMMM       
-      3MMMMx.     'MMMMMMf      xnMMMMMM"       
-      '*MMMMM      MMMMMM.     nMMMMMMP"        
-        *MMMMMx    "MMMMM\    .MMMMMMM=         
-         *MMMMMh   "MMMMM"   JMMMMMMP           
-           MMMMMM   3MMMM.  dMMMMMM            .
-            MMMMMM  "MMMM  .MMMMM(        .nnMP"
-=..          *MMMMx  MMM"  dMMMM"    .nnMMMMM*  
-  "MMn...     'MMMMr 'MM   MMM"   .nMMMMMMM*"   
-   "4MMMMnn..   *MMM  MM  MMP"  .dMMMMMMM""     
-     ^MMMMMMMMx.  *ML "M .M*  .MMMMMM**"        
-        *PMMMMMMhn. *x > M  .MMMM**""           
-           ""**MMMMhx/.h/ .=*"                  
-                    .3P"%....                   
-                  nP"     "*MMnx   """)
+    await ctx.send(f"{user_name} stop taking drugs")
 
 # Bot starten
 bot.run(token)
