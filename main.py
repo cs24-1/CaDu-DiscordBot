@@ -12,6 +12,7 @@ from requests.exceptions import RequestException
 from datetime import timezone
 import pytz
 import asyncio
+import random
 
 # Lade Umgebungsvariablen
 load_dotenv()
@@ -415,6 +416,18 @@ async def bong(ctx):
     user_name = ctx.author.display_name
 
     await ctx.send(f"{user_name} stop taking drugs")
+
+@bot.command()
+async def PingPong(ctx):
+
+    n = random.randint(range(1,10))
+    i = 0
+    while i < n:
+        await ctx.send("🏓 Ping!")
+        await ctx.send("🏓 Pong!")
+    
+    await ctx.send(":exclamation:  der Ball ist herunter gefallen")
+    
 
 # Bot starten
 bot.run(token)
