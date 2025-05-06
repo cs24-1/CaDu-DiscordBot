@@ -405,28 +405,58 @@ async def ping(ctx, argument: str = None):
             await ctx.send("🏓 Pong!")
 
 
-@bot.command()
-async def pong(ctx):
-    user_name = ctx.author.display_name
+@bot.command(name="PingPong", aliases=["pingpong"])
+async def pingpong_command(ctx):
+    ping_score = 0
+    pong_score = 0
+    max_score = 3
+    round_number = 1
 
-    await ctx.send(f"🏓 Pong!, {user_name} :abc: you idiot")
+    await ctx.send("🏓 Spielstart: Ping vs Pong!")
+    await asyncio.sleep(1)
 
-@bot.command()
-async def bong(ctx):
-    user_name = ctx.author.display_name
+    funny_interrupts = [
+        "💥 Der Ball ist gegen die Wand geflogen!",
+        "😵 Ein Spieler hat den Ball verfehlt!",
+        "🙈 Ein Vogel hat den Ball gestohlen!",
+        "🪞 Der Ball hat sich verdoppelt – verwirrend!",
+        "🧤 Der Schiedsrichter hat eingegriffen!"
+    ]
 
-    await ctx.send(f"{user_name} stop taking drugs")
+    while ping_score < max_score and pong_score < max_score:
+        await ctx.send(f"🎯 **Runde {round_number}**")
+        await asyncio.sleep(0.5)
 
-@bot.command()
-async def PingPong(ctx):
-
-    n = random.randint(range(1,10))
-    i = 0
-    while i < n:
         await ctx.send("🏓 Ping!")
+        await asyncio.sleep(0.5)
         await ctx.send("🏓 Pong!")
-    
-    await ctx.send(":exclamation:  der Ball ist herunter gefallen")
+        await asyncio.sleep(0.5)
+
+        # Zufällige Unterbrechung (10% Chance)
+        if random.random() < 0.1:
+            interrupt = random.choice(funny_interrupts)
+            await ctx.send(interrupt)
+            await asyncio.sleep(1)
+            round_number += 1
+            continue  # nächste Runde ohne Punkt
+
+        winner = random.choice(["Ping", "Pong"])
+        if winner == "Ping":
+            ping_score += 1
+        else:
+            pong_score += 1
+
+        await ctx.send(f"✅ Punkt für **{winner}**!")
+        await ctx.send(f"📊 Stand: Ping {ping_score} – {pong_score} Pong")
+        await asyncio.sleep(1)
+
+        round_number += 1
+
+    await ctx.send("💥 Der Ball ist heruntergefallen!")
+    await asyncio.sleep(1)
+    winner = "Ping" if ping_score > pong_score else "Pong"
+    await ctx.send(f"🏆 **{winner} gewinnt mit {ping_score}:{pong_score}!** 🎉")
+
     
 
 # Bot starten
