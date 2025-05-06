@@ -52,6 +52,35 @@ def save_ping_counter():
     with open("ping_counter.json", "w") as f:
         json.dump(ping_counter, f)
 
+pingpong_counter = {}
+
+def load_pingpong_counter():
+    global pingpong_counter
+    try:
+        with open("pingpong_win_counter.json", "r") as f:
+            # Sicherstellen, dass die Datei korrekt formatiert ist
+            data = json.load(f)
+            # Initialisiere Ping und Pong wenn nicht vorhanden
+            pingpong_counter["Ping"] = data.get("Ping", 0)
+            pingpong_counter["Pong"] = data.get("Pong", 0)
+    except (FileNotFoundError, json.JSONDecodeError):
+        # Fallback auf Standardwerte
+        pingpong_counter = {"Ping": 0, "Pong": 0}
+        print("Fehler beim Laden des PingPong Zählers, Standardwerte werden verwendet.")
+
+def save_pingpong_counter():
+    with open("pingpong_win_counter.json", "w") as f:
+        # Stellen Sie sicher, dass der Counter korrekt gespeichert wird
+        json.dump(pingpong_counter, f, indent=4)
+
+def update_pingpong_winner(winner: str):
+    if winner == "Ping":
+        pingpong_counter["Ping"] += 1
+    elif winner == "Pong":
+        pingpong_counter["Pong"] += 1
+    save_pingpong_counter()
+
+
 # Liste mit Feiertagen
 
 FEIERTAGE = {
@@ -217,6 +246,7 @@ async def send_long_message(channel, content):
 @bot.event
 async def on_ready():
     load_ping_counter()
+    load_pingpong_counter()
     print(f"✅ Eingeloggt als {bot.user}")
     print(f"📦 Discord.py Version: {discord.__version__}")
     await bot.change_presence(
@@ -405,7 +435,7 @@ async def ping(ctx, argument: str = None):
             await ctx.send("🏓 Pong!")
 
 
-@bot.command(name="PingPong", aliases=["pingpong"])
+@bot.command(name="PingPong", aliases=["pingpong","pongping","PongPing"])
 async def pingpong_command(ctx):
     ping_score = 0
     pong_score = 0
@@ -455,9 +485,29 @@ async def pingpong_command(ctx):
     await ctx.send("💥 Der Ball ist heruntergefallen!")
     await asyncio.sleep(1)
     winner = "Ping" if ping_score > pong_score else "Pong"
+
+    update_pingpong_winner(winner)
     await ctx.send(f"🏆 **{winner} gewinnt mit {ping_score}:{pong_score}!** 🎉")
 
-    
+
+
+@bot.command()
+async def pong(ctx):
+    user_name = ctx.author.display_name
+
+    await ctx.send(f"🏓 Pong!, {user_name} :abc: you idiot")
+
+@bot.command()
+async def bong(ctx):
+    user_name = ctx.author.display_name
+
+    await ctx.send(f"{user_name} stop taking drugs")
+
+@bot.command()
+async def pingpongstats(ctx):
+    ping_wins = pingpong_counter.get("Ping", 0)
+    pong_wins = pingpong_counter.get("Pong", 0)
+    await ctx.send(f"📈 **PingPong-Spielstand**\nPing: `{ping_wins}` Siege\nPong: `{pong_wins}` Siege")
 
 # Bot starten
 bot.run(token)
