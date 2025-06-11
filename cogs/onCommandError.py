@@ -1,13 +1,11 @@
-import discord
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions, CheckFailure, CommandNotFound, NotOwner
-import time
 
 
 class OnCommandErrorCog(commands.Cog, name="on command error"):
 	def __init__(self, bot:commands.Bot):
 		self.bot = bot
-        
+		
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx:commands.Context, error:commands.CommandError):
 		if isinstance(error, commands.CommandOnCooldown):
@@ -25,7 +23,7 @@ class OnCommandErrorCog(commands.Cog, name="on command error"):
 		elif isinstance(error, CommandNotFound):
 			return
 		elif isinstance(error, MissingPermissions):
- 			await ctx.send(error)
+			await ctx.send(error)
 		elif isinstance(error, CheckFailure):
 			await ctx.send(error)
 		elif isinstance(error, NotOwner):
@@ -33,5 +31,5 @@ class OnCommandErrorCog(commands.Cog, name="on command error"):
 		else:
 			print(error) 
 
-def setup(bot):
+def setup(bot: commands.Bot):
 	bot.add_cog(OnCommandErrorCog(bot))

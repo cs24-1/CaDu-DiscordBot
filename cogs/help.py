@@ -60,6 +60,6 @@ class HelpCog(commands.Cog, name="help command"):
 				embed.add_field(name=i.name, value=i.description, inline=False)
 			await ctx.channel.send(embed=embed)
 
-def setup(bot:commands.Bot):
+def setup(bot: commands.Bot):
 	bot.remove_command("help")
 	bot.add_cog(HelpCog(bot))

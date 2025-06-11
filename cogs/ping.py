@@ -1,6 +1,5 @@
-import discord
-from discord.ext import commands
 import time
+from discord.ext import commands
 
 
 class PingCog(commands.Cog, name="ping command"):
@@ -17,5 +16,5 @@ class PingCog(commands.Cog, name="ping command"):
 		ping = (time.monotonic() - before) * 1000
 		await message.edit(content=f"🏓 Pong !  `{int(ping)} ms`")
 
-def setup(bot:commands.Bot):
+def setup(bot: commands.Bot):
 	bot.add_cog(PingCog(bot))

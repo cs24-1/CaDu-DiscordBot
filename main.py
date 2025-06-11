@@ -1,18 +1,19 @@
-import json
-import discord
-from discord.ext import commands, tasks
-import json
 import os
-import requests
-from datetime import datetime, timedelta, date
-from dotenv import load_dotenv
+import asyncio
 import warnings
+import random
+
+import json
+import requests
 from urllib3.exceptions import InsecureRequestWarning
 from requests.exceptions import RequestException
-from datetime import timezone
+
 import pytz
-import asyncio
-import random
+from datetime import datetime, timezone, timedelta, date
+
+import discord
+from discord.ext import commands
+from dotenv import load_dotenv
 
 # Lade Umgebungsvariablen
 load_dotenv()
@@ -42,8 +43,8 @@ def load_ping_counter():
     global ping_counter
     try:
         with open("ping_counter.json", "r") as f:
-            ping_counter = json.load(f)
-            ping_counter = {int(k): v for k, v in ping_counter.items()}  # Keys in int konvertieren
+            ping_counter: dict = json.load(f)
+            ping_counter: dict = {int(k): v for k, v in ping_counter.items()}  # Keys in int konvertieren
     except FileNotFoundError:
         ping_counter = {}
 
